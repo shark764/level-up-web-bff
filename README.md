@@ -7,6 +7,12 @@
 
 ## Development
 
+Create a `.env` file with the following keys
+
+- DB_CONNECTION_STRING=your db connection string
+
+Start the development server
+
 ```bash
 yarn dev
 ```
