@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import { Schema, model } from 'mongoose';
 
-const FacilitiesSchema = new mongoose.Schema({
+const FacilitiesSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -14,7 +14,7 @@ const FacilitiesSchema = new mongoose.Schema({
     required: true,
   },
   location: {
-    type: { type: String, default: "Point" },
+    type: { type: String, default: 'Point' },
     coordinates: [{ type: Number, required: true }],
   },
   schedule: {
@@ -38,6 +38,6 @@ const FacilitiesSchema = new mongoose.Schema({
   amenities: [{ type: String }],
 });
 
-const Facilities = mongoose.model("facilities", FacilitiesSchema);
+const Facilities = model('facilities', FacilitiesSchema);
 
-module.exports = Facilities;
+export default Facilities;

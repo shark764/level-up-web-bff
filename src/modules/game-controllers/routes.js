@@ -1,13 +1,15 @@
-const express = require("express");
-const { success } = require("./../../utils/response");
-const router = express.Router();
+import { Router } from 'express';
+import { success } from './../../utils/response';
+const router = Router();
 
-router.get("/game-controllers", async (req, res) => {
-  return res.status(200).json(success({ requestId: req.id, data: "TODO" }));
-});
+// eslint-disable-next-line require-await
+router.get('/game-controllers', async (req, res) =>
+  res.status(200).json(success({ requestId: req.id, data: 'TODO' }))
+);
 
-router.post("/game-controllers", async (req, res) => {
-  return res.status(200).json(success({ requestId: req.id, data: "TODO" }));
-});
+// eslint-disable-next-line require-await
+router.post('/game-controllers', async (req, res) =>
+  res.status(200).json(success({ requestId: req.id, data: 'TODO' }))
+);
 
-module.exports = router;
+export default router;

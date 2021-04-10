@@ -16,3 +16,11 @@ Start the development server
 ```bash
 yarn dev
 ```
+
+## Utilities
+
+Format code using [Prettier](https://prettier.io/) and [Eslint](https://eslint.org/)
+
+```bash
+yarn prettify
+```

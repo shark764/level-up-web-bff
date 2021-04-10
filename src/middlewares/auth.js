@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const { error } = require("./../utils/response");
+import jwt from 'jsonwebtoken';
+import { error } from './../utils/response';
 
 const validateAuthentication = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -8,25 +8,25 @@ const validateAuthentication = (req, res, next) => {
     return res
       .status(403)
       .json(
-        error({ requestId: req.id, code: 403, message: "Missing auth header" })
+        error({ requestId: req.id, code: 403, message: 'Missing auth header' })
       );
   }
 
-  const accessToken = authHeader.split(" ")[1];
+  const [, accessToken] = authHeader.split(' ');
 
   jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET, (err, user) => {
     if (err) {
-      if (err.name === "TokenExpiredError") {
+      if (err.name === 'TokenExpiredError') {
         return res
           .status(401)
           .json(
-            error({ requestId: req.id, code: 401, message: "Token expired" })
+            error({ requestId: req.id, code: 401, message: 'Token expired' })
           );
       }
       return res
         .status(403)
         .json(
-          error({ requestId: req.id, code: 403, message: "Token not valid" })
+          error({ requestId: req.id, code: 403, message: 'Token not valid' })
         );
     }
     req.user = user;
@@ -55,8 +55,8 @@ const verifyToken = (req, res, next) => {
 
   res.status(401).json({
     success: false,
-    error: "User not allowed to perform this action.",
+    error: 'User not allowed to perform this action.',
   });
 };
 
-module.exports = { validateAuthentication, verifyToken };
+export default { validateAuthentication, verifyToken };
