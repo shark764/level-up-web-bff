@@ -1,26 +1,76 @@
-require("dotenv").config();
-require("./utils/database");
-const express = require("express");
-const addRequestId = require("express-request-id")();
+import 'dotenv/config';
+import './utils/database';
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
+import addRequestId from 'express-request-id';
+// modules
+import Facilities from './modules/facilities';
+import GameControllers from './modules/game-controllers';
+import Zones from './modules/zones';
+import { log } from './utils/common';
+
 const app = express();
 const port = process.env.PORT || 5500;
-// modules
-const Facilities = require("./modules/facilities");
-const GameControllers = require("./modules/game-controllers");
-const Zones = require("./modules/zones");
 
-app.use(addRequestId);
+app.use(addRequestId());
+
+/**
+ * Restricting access to server using a whitelist
+ */
+const corsOptions = {
+  origin: [
+    /(localhost|127.0.0.1)./,
+    // 'https://client-ui.herokuapp.com',
+    // 'https://client-ui.netlify.app',
+  ],
+  optionsSuccessStatus: 200, // For legacy browser support
+};
+
+app.use(cors(corsOptions));
+
+/**
+ * Parse requests of content-type - application/json
+ * Used to parse JSON bodies
+ * WARNING!:
+ *    body-parser has been deprecated
+ */
 app.use(express.json());
+
+/**
+ * Parse requests of content-type - application/x-www-form-urlencoded
+ * Parse URL-encoded bodies
+ */
+app.use(express.urlencoded({ extended: true }));
+
+/**
+ * Use the express-static middleware
+ */
+app.use(express.static('public'));
+
+const httpServer = createServer(app);
 
 // module registration
 app.use(Facilities);
 app.use(GameControllers);
 app.use(Zones);
 
-app.listen(port, (error) => {
+/**
+ * Set port, listen for requests
+ * WARNING!!
+ * app.listen(3000); will not work here, as it creates a new HTTP server
+ *
+ * HTTP Server useful if you want to reuse the HTTP server,
+ * for example to run socket.io within the same HTTP server instance.
+ */
+httpServer.listen({ port }, (error) => {
   if (error) {
     throw new Error(error);
   }
 
-  console.info("Server running on port:", port);
+  log(
+    'success',
+    `\nGame Controller Server listening on port ${port} ....`,
+    `\n\tStart date: ${new Date()}`
+  );
 });

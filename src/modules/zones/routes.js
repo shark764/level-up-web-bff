@@ -1,13 +1,15 @@
-const express = require("express");
-const { success } = require("./../../utils/response");
-const router = express.Router();
+import { Router } from 'express';
+import { success } from './../../utils/response';
+const router = Router();
 
-router.get("/zones", async (req, res) => {
-  return res.status(200).json(success({ requestId: req.id, data: "TODO" }));
-});
+// eslint-disable-next-line require-await
+router.get('/zones', async (req, res) =>
+  res.status(200).json(success({ requestId: req.id, data: 'TODO' }))
+);
 
-router.post("/zones", async (req, res) => {
-  return res.status(200).json(success({ requestId: req.id, data: "TODO" }));
-});
+// eslint-disable-next-line require-await
+router.post('/zones', async (req, res) =>
+  res.status(200).json(success({ requestId: req.id, data: 'TODO' }))
+);
 
-module.exports = router;
+export default router;
