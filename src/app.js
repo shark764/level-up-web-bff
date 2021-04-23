@@ -8,6 +8,7 @@ import addRequestId from 'express-request-id';
 import Facilities from './modules/facilities';
 import GameControllers from './modules/game-controllers';
 import Zones from './modules/zones';
+import Permissions from './modules/permissions';
 import { log } from './utils/common';
 
 const app = express();
@@ -54,6 +55,7 @@ const httpServer = createServer(app);
 app.use(Facilities);
 app.use(GameControllers);
 app.use(Zones);
+app.use(Permissions);
 
 /**
  * Set port, listen for requests
