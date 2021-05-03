@@ -46,6 +46,39 @@ router.get('/facilities/:id', async (req, res) => {
 //Add a Facility
 router.post('/facilities', async (req, res) => {
   try {
+    if (
+      !req.body.location.coordinates ||
+      req.body.location.coordinates.length === 0
+    ) {
+      return res
+        .status(400)
+        .json(
+          error({
+            requestId: req.id,
+            code: 400,
+            message: 'Coordinates are required',
+          })
+        );
+    }
+
+    const updates = Object.keys(req.body);
+    const mandatoryFields = ['name', 'description', 'address', 'schedule'];
+    const messageE = 'Missing required field: ';
+
+    for (const mandatoryField of mandatoryFields) {
+      if (!updates.includes(mandatoryField)) {
+        return res
+          .status(400)
+          .json(
+            error({
+              requestId: req.id,
+              code: 400,
+              message: messageE.concat(mandatoryField),
+            })
+          );
+      }
+    }
+
     const addedFacility = await Facilities.create({
       name: req.body.name,
       description: req.body.description,
@@ -70,6 +103,39 @@ router.post('/facilities', async (req, res) => {
 //Update facility
 router.patch('/facilities/:id', (req, res) => {
   try {
+    if (
+      !req.body.location.coordinates ||
+      req.body.location.coordinates.length === 0
+    ) {
+      return res
+        .status(400)
+        .json(
+          error({
+            requestId: req.id,
+            code: 400,
+            message: 'Coordinates are required',
+          })
+        );
+    }
+
+    const updates = Object.keys(req.body);
+    const mandatoryFields = ['name', 'description', 'address', 'schedule'];
+    const messageE = 'Missing required field: ';
+
+    for (const mandatoryField of mandatoryFields) {
+      if (!updates.includes(mandatoryField)) {
+        return res
+          .status(400)
+          .json(
+            error({
+              requestId: req.id,
+              code: 400,
+              message: messageE.concat(mandatoryField),
+            })
+          );
+      }
+    }
+
     Facilities.findByIdAndUpdate(
       req.params.id,
       req.body,
