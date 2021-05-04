@@ -46,37 +46,21 @@ router.get('/facilities/:id', async (req, res) => {
 //Add a Facility
 router.post('/facilities', async (req, res) => {
   try {
-    if (
-      !req.body.location.coordinates ||
-      req.body.location.coordinates.length === 0
-    ) {
-      return res
-        .status(400)
-        .json(
-          error({
-            requestId: req.id,
-            code: 400,
-            message: 'Coordinates are required',
-          })
-        );
-    }
+    const result = validateRequiredFields(req, [
+      'name',
+      'description',
+      'address',
+      'schedule',
+    ]);
 
-    const updates = Object.keys(req.body);
-    const mandatoryFields = ['name', 'description', 'address', 'schedule'];
-    const messageE = 'Missing required field: ';
-
-    for (const mandatoryField of mandatoryFields) {
-      if (!updates.includes(mandatoryField)) {
-        return res
-          .status(400)
-          .json(
-            error({
-              requestId: req.id,
-              code: 400,
-              message: messageE.concat(mandatoryField),
-            })
-          );
-      }
+    if (result.code !== 200) {
+      return res.status(result.code).json(
+        error({
+          requestId: req.id,
+          code: result.code,
+          message: result.message,
+        })
+      );
     }
 
     const addedFacility = await Facilities.create({
@@ -103,37 +87,21 @@ router.post('/facilities', async (req, res) => {
 //Update facility
 router.patch('/facilities/:id', (req, res) => {
   try {
-    if (
-      !req.body.location.coordinates ||
-      req.body.location.coordinates.length === 0
-    ) {
-      return res
-        .status(400)
-        .json(
-          error({
-            requestId: req.id,
-            code: 400,
-            message: 'Coordinates are required',
-          })
-        );
-    }
+    const result = validateRequiredFields(req, [
+      'name',
+      'description',
+      'address',
+      'schedule',
+    ]);
 
-    const updates = Object.keys(req.body);
-    const mandatoryFields = ['name', 'description', 'address', 'schedule'];
-    const messageE = 'Missing required field: ';
-
-    for (const mandatoryField of mandatoryFields) {
-      if (!updates.includes(mandatoryField)) {
-        return res
-          .status(400)
-          .json(
-            error({
-              requestId: req.id,
-              code: 400,
-              message: messageE.concat(mandatoryField),
-            })
-          );
-      }
+    if (result.code !== 200) {
+      return res.status(result.code).json(
+        error({
+          requestId: req.id,
+          code: result.code,
+          message: result.message,
+        })
+      );
     }
 
     Facilities.findByIdAndUpdate(
@@ -209,5 +177,42 @@ router.all('/facilities', (req, res) =>
       error({ requestId: req.id, code: 405, message: 'Method not allowed' })
     )
 );
+
+function validateRequiredFields(req, fields) {
+  let result = {
+    code: 200,
+    message: '',
+  };
+
+  if (
+    !req.body.location.coordinates ||
+    req.body.location.coordinates.length === 0
+  ) {
+    result = {
+      code: 400,
+      message: 'Coordinates are required',
+    };
+  }
+
+  const updates = Object.keys(req.body);
+  const updatesValues = Object.values(req.body);
+  const mandatoryFields = fields;
+  const messageE = 'Missing required field: ';
+
+  for (const mandatoryField of mandatoryFields) {
+    if (!updates.includes(mandatoryField)) {
+      result = {
+        code: 400,
+        message: messageE.concat(mandatoryField),
+      };
+    } else if (!req.body[mandatoryField]) {
+      result = {
+        code: 400,
+        message: messageE.concat(mandatoryField),
+      };
+    }
+  }
+  return result;
+}
 
 export default router;
