@@ -6,7 +6,7 @@ const router = Router();
 //Get all Facilities
 router.get('/facilities', async (req, res) => {
   try {
-    const facilities = await Facilities.find();
+    const facilities = await Facilities.where('deletedAt').eq(null);
     return res.status(200).json(
       success({
         requestId: req.id,
@@ -15,12 +15,12 @@ router.get('/facilities', async (req, res) => {
         },
       })
     );
-  } catch (error) {
+  } catch (err) {
     res.status(500).json(
       error({
         requestId: req.id,
         code: 500,
-        message: error,
+        message: err.message,
       })
     );
   }
@@ -39,7 +39,7 @@ router.get('/facilities/:id', async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
@@ -80,18 +80,31 @@ router.post('/facilities', async (req, res) => {
   } catch (err) {
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
 //Update facility
-router.patch('/facilities/:id', (req, res) => {
+router.patch('/facilities/:id', async (req, res) => {
   try {
+    const validationResult = await validateFacility(req.params.id);
+
+    if (validationResult.code !== 200) {
+      return res.status(validationResult.code).json(
+        error({
+          requestId: req.id,
+          code: validationResult.code,
+          message: validationResult.message,
+        })
+      );
+    }
+
     const result = validateRequiredFields(req, [
       'name',
       'description',
       'address',
       'schedule',
+      'updatedBy',
     ]);
 
     if (result.code !== 200) {
@@ -104,6 +117,8 @@ router.patch('/facilities/:id', (req, res) => {
       );
     }
 
+    req.body.updatedAt = Date.now();
+
     Facilities.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -112,7 +127,9 @@ router.patch('/facilities/:id', (req, res) => {
         if (err) {
           return res
             .status(500)
-            .json(error({ requestId: req.id, code: 500, message: err }));
+            .json(
+              error({ requestId: req.id, code: 500, message: err.message })
+            );
         } else if (!updatedFacility) {
           return res.status(404).json(
             error({
@@ -135,38 +152,72 @@ router.patch('/facilities/:id', (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
-router.delete('/facilities/:id', (req, res) => {
+router.delete('/facilities/:id', async (req, res) => {
   try {
-    Facilities.findByIdAndDelete(req.params.id, (err, deletedFacility) => {
-      if (err) {
-        return res
-          .status(500)
-          .json(error({ requestId: req.id, code: 500, message: err }));
-      } else if (!deletedFacility) {
-        return res.status(404).json(
-          error({
-            requestId: req.id,
-            code: 404,
-            message: 'Facility not found',
-          })
-        );
-      } else {
-        return res
-          .status(200)
-          .json(
-            success({ requestId: req.id, data: { facility: deletedFacility } })
+    const validationResult = await validateFacility(req.params.id);
+
+    if (validationResult.code !== 200) {
+      return res.status(validationResult.code).json(
+        error({
+          requestId: req.id,
+          code: validationResult.code,
+          message: validationResult.message,
+        })
+      );
+    }
+
+    const result = validateRequiredFields(req, ['updatedBy']);
+
+    if (result.code !== 200) {
+      return res.status(result.code).json(
+        error({
+          requestId: req.id,
+          code: result.code,
+          message: result.message,
+        })
+      );
+    }
+
+    req.body.deletedAt = Date.now();
+
+    Facilities.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, omitUndefined: true },
+      (err, updatedFacility) => {
+        if (err) {
+          return res
+            .status(500)
+            .json(
+              error({ requestId: req.id, code: 500, message: err.message })
+            );
+        } else if (!updatedFacility) {
+          return res.status(404).json(
+            error({
+              requestId: req.id,
+              code: 404,
+              message: 'Facility not found',
+            })
           );
+        } else {
+          return res.status(200).json(
+            success({
+              requestId: req.id,
+              data: { facility: updatedFacility },
+            })
+          );
+        }
       }
-    });
+    );
   } catch (err) {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
@@ -184,18 +235,7 @@ function validateRequiredFields(req, fields) {
     message: '',
   };
 
-  if (
-    !req.body.location.coordinates ||
-    req.body.location.coordinates.length === 0
-  ) {
-    result = {
-      code: 400,
-      message: 'Coordinates are required',
-    };
-  }
-
   const updates = Object.keys(req.body);
-  const updatesValues = Object.values(req.body);
   const mandatoryFields = fields;
   const messageE = 'Missing required field: ';
 
@@ -213,6 +253,38 @@ function validateRequiredFields(req, fields) {
     }
   }
   return result;
+}
+
+async function validateFacility(FacilityId) {
+  try {
+    const facility = await Facilities.findById(FacilityId);
+
+    let result = {
+      code: 200,
+      message: '',
+    };
+
+    if (!facility) {
+      result = {
+        code: 404,
+        message: 'Facility not found',
+      };
+    } else if (facility.deletedAt) {
+      result = {
+        code: 400,
+        message: 'Facility is unavailable, it was removed',
+      };
+    } else {
+      result = {
+        code: 200,
+        message: 'Facility found',
+      };
+    }
+
+    return result;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 export default router;
