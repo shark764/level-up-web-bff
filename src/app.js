@@ -57,6 +57,10 @@ app.use(GameControllers);
 app.use(Zones);
 app.use(Permissions);
 
+//module user
+const usersPath = '/users';
+app.use( usersPath, require('./modules/users/routes'));
+
 /**
  * Set port, listen for requests
  * WARNING!!
