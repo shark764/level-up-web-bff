@@ -22,26 +22,47 @@ const ZonesSchemas = new mongoose.Schema({
     required: true,
   },
 
-  dateCreated: {
+  equipment: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+
+  createdAt: {
     type: Number,
     default: Date.now,
-    required: false,
   },
 
-  dateUpdated: {
+  updatedAt: {
     type: Number,
-    default: Date.now,
-    required: false,
+    default: null,
   },
 
-  userCreated: {
-    type: String,
-    required: false,
+  deletedAt: {
+    type: Number,
+    default: null,
   },
 
-  userUpdated: {
-    type: String,
-    required: false,
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
+  },
+
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
+  },
+
+  deletedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
   },
 });
 

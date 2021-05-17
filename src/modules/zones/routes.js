@@ -8,7 +8,9 @@ const router = Router();
 //get all zones
 router.get('/zones', async (req, res) => {
   try {
-    const zones = await Zones.find().populate('facilityId');
+    const zones = await Zones.where('deletedAt')
+      .eq(null)
+      .populate('facilityId');
     return res
       .status(200)
       .json(success({ requestId: req.id, data: { zones } }));
@@ -16,7 +18,7 @@ router.get('/zones', async (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
@@ -39,7 +41,7 @@ router.get('/zones/:id', async (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
@@ -48,23 +50,34 @@ router.post('/zones', async (req, res) => {
   try {
     const facility = await Facilities.findById(req.body.facilityId);
 
-    if (!req.body.userCreated) {
-      return res.status(404).json(
+    if (!req.body.createdBy) {
+      return res.status(400).json(
         error({
           requestId: req.id,
-          code: 404,
-          message: 'create user (userCreated) is required',
+          code: 400,
+          message: 'Create user (createdBy) is required',
         })
       );
     }
 
     if (facility) {
+      if (facility.deletedAt) {
+        return res.status(500).json(
+          error({
+            requestId: req.id,
+            code: 500,
+            message: 'Facility is unavailable, it was removed',
+          })
+        );
+      }
+
       const zone = await Zones.create({
         facilityId: facility,
         zoneName: req.body.zoneName,
         description: req.body.description,
         status: req.body.status,
-        userCreated: req.body.userCreated,
+        equipment: req.body.equipment,
+        createdBy: req.body.createdBy,
       });
       return res
         .status(200)
@@ -80,13 +93,25 @@ router.post('/zones', async (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
 //update zone
 router.patch('/zones/:id', async (req, res) => {
   try {
+    const result = await validateZone(req.params.id);
+
+    if (result.code !== 200) {
+      return res.status(result.code).json(
+        error({
+          requestId: req.id,
+          code: result.code,
+          message: result.message,
+        })
+      );
+    }
+
     if (req.body.facilityId && !req.body.facilityId._id) {
       req.body.facilityId = await Facilities.findById(req.body.facilityId);
       if (!req.body.facilityId) {
@@ -97,30 +122,40 @@ router.patch('/zones/:id', async (req, res) => {
             message: 'Facility not found',
           })
         );
+      } else if (req.body.facilityId.deletedAt) {
+        return res.status(500).json(
+          error({
+            requestId: req.id,
+            code: 500,
+            message: 'Facility is unavailable, it was removed',
+          })
+        );
       }
     }
 
-    if (!req.body.userUpdated) {
-      return res.status(404).json(
+    if (!req.body.updatedBy) {
+      return res.status(400).json(
         error({
           requestId: req.id,
-          code: 404,
-          message: 'update user (userUpdated) is required',
+          code: 400,
+          message: 'Update user (updatedBy) is required',
         })
       );
     }
 
-    req.body.dateUpdated = Date.now();
+    req.body.updatedAt = Date.now();
 
     Zones.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, omitUndefined: true },
+      { new: true, omitUndefined: true, runValidators: true },
       (err, updatedZone) => {
         if (err) {
           return res
             .status(500)
-            .json(error({ requestId: req.id, code: 500, message: err }));
+            .json(
+              error({ requestId: req.id, code: 500, message: err.message })
+            );
         } else if (!updatedZone) {
           return res.status(404).json(
             error({
@@ -140,35 +175,69 @@ router.patch('/zones/:id', async (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
 //delete zone
-router.delete('/zones/:id', (req, res) => {
+router.delete('/zones/:id', async (req, res) => {
   try {
-    Zones.findByIdAndDelete(req.params.id, req.body, (err, deletedZone) => {
-      if (err) {
-        return res
-          .status(500)
-          .json(error({ requestId: req.id, code: 500, message: err }));
-      } else if (!deletedZone) {
-        return res
-          .status(404)
-          .json(
-            error({ requestId: req.id, code: 404, message: 'Zone not found' })
+    const result = await validateZone(req.params.id);
+
+    if (result.code !== 200) {
+      return res.status(result.code).json(
+        error({
+          requestId: req.id,
+          code: result.code,
+          message: result.message,
+        })
+      );
+    }
+
+    if (!req.body.deletedBy) {
+      return res.status(400).json(
+        error({
+          requestId: req.id,
+          code: 400,
+          message: 'Delete user (deletedBy) is required',
+        })
+      );
+    }
+
+    req.body.deletedAt = Date.now();
+    req.body.status = 'Deleted';
+
+    Zones.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, omitUndefined: true },
+      (err, deletedZone) => {
+        if (err) {
+          return res
+            .status(500)
+            .json(
+              error({ requestId: req.id, code: 500, message: err.message })
+            );
+        } else if (!deletedZone) {
+          return res.status(404).json(
+            error({
+              requestId: req.id,
+              code: 404,
+              message: 'Zone not found',
+            })
           );
-      } else {
-        return res
-          .status(200)
-          .json(success({ requestId: req.id, data: { zone: deletedZone } }));
+        } else {
+          return res
+            .status(200)
+            .json(success({ requestId: req.id, data: { zone: deletedZone } }));
+        }
       }
-    }).populate('facilityId');
+    ).populate('facilityId');
   } catch (err) {
     console.error(err);
     return res
       .status(500)
-      .json(error({ requestId: req.id, code: 500, message: err }));
+      .json(error({ requestId: req.id, code: 500, message: err.message }));
   }
 });
 
@@ -179,5 +248,37 @@ router.all('/zones', (req, res) =>
       error({ requestId: req.id, code: 405, message: 'Method not allowed' })
     )
 );
+
+async function validateZone(ZoneId) {
+  try {
+    const zone = await Zones.findById(ZoneId);
+
+    let result = {
+      code: 200,
+      message: '',
+    };
+
+    if (!zone) {
+      result = {
+        code: 404,
+        message: 'Zone not found',
+      };
+    } else if (zone.deletedAt) {
+      result = {
+        code: 400,
+        message: 'Zone is unavailable, it was removed',
+      };
+    } else {
+      result = {
+        code: 200,
+        message: 'Zone found',
+      };
+    }
+
+    return result;
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 export default router;
