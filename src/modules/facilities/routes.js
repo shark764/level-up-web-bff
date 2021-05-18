@@ -170,7 +170,7 @@ router.delete('/facilities/:id', async (req, res) => {
       );
     }
 
-    const result = validateRequiredFields(req, ['updatedBy']);
+    const result = validateRequiredFields(req, ['deletedBy']);
 
     if (result.code !== 200) {
       return res.status(result.code).json(
