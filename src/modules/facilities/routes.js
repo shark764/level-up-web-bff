@@ -51,6 +51,7 @@ router.post('/facilities', async (req, res) => {
       'description',
       'address',
       'schedule',
+      'createdBy',
     ]);
 
     if (result.code !== 200) {
