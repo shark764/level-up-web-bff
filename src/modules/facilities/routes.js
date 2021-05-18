@@ -35,7 +35,9 @@ router.get('/facilities/:id', async (req, res) => {
         .status(404)
         .json(error({ requestId: req.id, code: 404, message: 'Not Found' }));
 
-    res.json(facility);
+    return res
+      .status(200)
+      .json(success({ requestId: req.id, data: { facility } }));
   } catch (err) {
     return res
       .status(500)
