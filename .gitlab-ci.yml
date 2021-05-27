@@ -1,4 +1,5 @@
 build:
+  image: docker:19.03.12
   stage: build
   script:
     - docker build -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff .
