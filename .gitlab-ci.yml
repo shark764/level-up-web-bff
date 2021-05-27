@@ -1,6 +1,6 @@
-build:
-  image: docker:19.03.12
-  variables:
+image: docker:19.03.12
+
+variables:
   # When using dind service, you must instruct docker to talk with the
   # daemon started inside of the service. The daemon is available with
   # a network connection instead of the default /var/run/docker.sock socket.
@@ -18,9 +18,13 @@ build:
   # This instructs Docker not to start over TLS.
   DOCKER_TLS_CERTDIR: ""
 
-  services:
+services:
   - docker:19.03.12-dind
-  
+
+before_script:
+  - docker info
+
+build:
   stage: build
   script:
     - docker build -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff .
