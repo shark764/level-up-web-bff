@@ -27,7 +27,7 @@ before_script:
 build:
   stage: build
   script:
-    - docker build -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff .
+    - docker build -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff:$CI_COMMIT_SHORT_SHA .
     - mkdir ~/.docker
     - cat $DOCKER_CREDS > ~/.docker/config.json    
     - docker login $DOCKER_REGISTRY_URL
