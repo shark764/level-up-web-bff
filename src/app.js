@@ -9,6 +9,7 @@ import Facilities from './modules/facilities';
 import GameControllers from './modules/game-controllers';
 import Zones from './modules/zones';
 import Permissions from './modules/permissions';
+import Roles from './modules/roles';
 import { log } from './utils/common';
 
 const app = express();
@@ -56,10 +57,11 @@ app.use(Facilities);
 app.use(GameControllers);
 app.use(Zones);
 app.use(Permissions);
+app.use('/roles',Roles);
 
 //module user
 const usersPath = '/users';
-app.use( usersPath, require('./modules/users/routes'));
+app.use(usersPath, require('./modules/users/routes'));
 
 /**
  * Set port, listen for requests
