@@ -88,7 +88,7 @@ router.post('/',
         );
       }
 
-      if (req.user.role !== 'SUPERADMIN') {
+      if (req.user.data.role !== 'SUPERADMIN') {
         return res.status(403).json(
           error({
             requestId: req.id,
@@ -154,7 +154,7 @@ router.patch(
         );
       }
 
-      if (req.user.role !== 'SUPERADMIN') {
+      if (req.user.data.role !== 'SUPERADMIN') {
         return res.status(403).json(
           error({
             requestId: req.id,
@@ -215,7 +215,7 @@ router.delete(
         );
       }
 
-      if (req.user.role !== 'SUPERADMIN') {
+      if (req.user.data.role !== 'SUPERADMIN') {
         return res.status(403).json(
           error({
             requestId: req.id,
