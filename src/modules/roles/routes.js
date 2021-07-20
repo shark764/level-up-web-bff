@@ -96,7 +96,7 @@ router.post('/',
           })
         );
       }
-
+ 
       const { name, description, readOnly, permissions } = req.body;
 
       const addedRole = await Roles.create({
@@ -183,7 +183,14 @@ router.patch(
                 code: 404,
               })
             );
-          } 
+          } else {
+            return res.status(200).json(
+              success({
+                requestId: req.id,
+                data: { role: updatedRole },
+              })
+            );
+          }
         }
       );
     } catch (err) {
@@ -253,6 +260,13 @@ router.delete(
               error({
                 requestId: req.id,
                 code: 404,
+              })
+            );
+          } else {
+            return res.status(200).json(
+              success({
+                requestId: req.id,
+                data: { role: updatedRole },
               })
             );
           }
