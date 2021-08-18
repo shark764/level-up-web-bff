@@ -14,7 +14,6 @@ const validateAccessToken = (req, res, next) => {
     }
     req.authToken = value;
     req.key = key;
-    req.user_id = user_id;
     next();
   });
 };
