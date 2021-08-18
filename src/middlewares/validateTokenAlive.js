@@ -10,7 +10,7 @@ const validateAccessToken = (req, res, next) => {
         .json(error({ requestId: req.id, code: 500, message: err.message }));
     }
     if (!value) {
-      return res.status(404).json(error({ requestId: req.id, code: 404 }));
+      return res.status(403).json(error({ requestId: req.id, code: 403 }));
     }
     req.authToken = value;
     req.key = key;
