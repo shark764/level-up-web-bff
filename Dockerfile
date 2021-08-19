@@ -1,15 +1,15 @@
-FROM node:15.2.1-alpine3.12
+FROM node:15.2.1-alpine3.12 as build-stage
 
-COPY . /usr/src/web-bff/
+RUN mkdir -p /usr/src/web-bff
 WORKDIR /usr/src/web-bff
-RUN ["yarn", "install"]
+COPY package*.json /usr/src/web-bff/
+COPY . /usr/src/web-bff/
+RUN ["npm", "install"]
 
+RUN ["npm", "run", "build"]
 
-COPY . /usr/src/web-bff
+FROM node:15.2.1-alpine3.12 as run-stage
 
-RUN yarn build 
-
-WORKDIR /usr/src/web-bff/dist
-
-
-CMD [ "node", "app.js" ]
+COPY --from=build-stage /usr/src/web-bff /usr/src/web-bff
+WORKDIR /usr/src/web-bff
+CMD [ "npm", "start" ]
