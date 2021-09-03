@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { error, success } from './../../utils/response';
 import Zones from './model';
-import Facilities from '../facilities/model';
+import Facilities from '../../models/Facility';
 
 const router = Router();
 

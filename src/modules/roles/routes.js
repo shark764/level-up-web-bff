@@ -12,7 +12,8 @@ const {
 } = require('../../middlewares');
 
 //Get all Roles
-router.get('/',
+router.get(
+  '/',
   [
     validateExistenceAccessHeader,
     validateSession,
@@ -31,7 +32,9 @@ router.get('/',
         })
       );
     } catch (err) {
-      res.status(500).json({requestId: req.id, code: 500,message: e.message});
+      res
+        .status(500)
+        .json({ requestId: req.id, code: 500, message: e.message });
     }
   }
 );
@@ -56,13 +59,16 @@ router.get(
 
       return res.json(success({ requestId: req.id, data: { role } }));
     } catch (err) {
-      return res.status(500).json(error({ requestId: req.id, code: 500, message:err.message }));
+      return res
+        .status(500)
+        .json(error({ requestId: req.id, code: 500, message: err.message }));
     }
   }
 );
 
 //Add a Role
-router.post('/',
+router.post(
+  '/',
   [
     validateExistenceAccessHeader,
     validateSession,
@@ -96,7 +102,7 @@ router.post('/',
           })
         );
       }
- 
+
       const { name, description, readOnly, permissions } = req.body;
 
       const addedRole = await Roles.create({
@@ -273,7 +279,9 @@ router.delete(
         }
       );
     } catch (err) {
-      return res.status(500).json(error({ requestId: req.id, code: 500, message: err.message }));
+      return res
+        .status(500)
+        .json(error({ requestId: req.id, code: 500, message: err.message }));
     }
   }
 );
@@ -287,9 +295,9 @@ function validateRequiredFields(req, fields) {
   const mandatoryFields = fields;
 
   for (const mandatoryField of mandatoryFields) {
-    if (!updates.includes(mandatoryField) || !req.body[mandatoryField] ) {
+    if (!updates.includes(mandatoryField) || !req.body[mandatoryField]) {
       result.code = 400;
-    } 
+    }
   }
   return result;
 }
