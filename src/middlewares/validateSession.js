@@ -7,10 +7,7 @@ const validateSession = (req, res, next) => {
   jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET, (err, id) => {
     if (err) {
       if (err.name === 'TokenExpiredError') {
-        return res
-        .status(401)
-        .json(error({ requestId: req.id, code: 401 }));
-
+        return res.status(401).json(error({ requestId: req.id, code: 401 }));
       }
       return res
         .status(500)

@@ -57,7 +57,7 @@ app.use(Facilities);
 app.use(GameControllers);
 app.use(Zones);
 app.use(Permissions);
-app.use('/roles',Roles);
+app.use('/roles', Roles);
 
 //module user
 const usersPath = '/users';
