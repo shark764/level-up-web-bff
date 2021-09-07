@@ -34,8 +34,7 @@ build:
   stage: build
   before_script:
     - apk add git
-    - mkdir -p src/db/models/
-    - git clone https://$GIT_USER:$GIT_TOKEN@gitlab.com/focus-ventures/schemas.git src/db/models/schemas
+    - git clone https://$GIT_USER:$GIT_TOKEN@gitlab.com/focus-ventures/schemas.git src/models/schemas
   script:
     - docker build -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff -t $DOCKER_REGISTRY_URL/lul-registry/lul-web-bff:$CI_COMMIT_SHORT_SHA .
     - mkdir ~/.docker
